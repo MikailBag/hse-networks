@@ -1,0 +1,47 @@
+vyos 1 (маршрутизатор)
+# Настраиваем vlan 10 как подсеть 10.0.10.0/24
+set interfaces ethernet eth0 vif 10 address '10.0.10.1/24'
+# Настраиваем vlan 20 как подсеть 10.0.20.0/24
+set interfaces ethernet eth0 vif 20 address '10.0.20.1/24'
+
+
+vyos 2 (распределяющий свитч)
+# Настраиваем интерфейсы, между которыми надо коммутировать пакеты
+set interfaces bridge br0 member interface eth0
+set interfaces bridge br0 member interface eth1
+set interfaces bridge br0 member interface eth2
+# Включаем stp
+set interfaces bridge br0 stp
+
+vyos 3 (свитч для первой подсети)
+# Включаем VLAN-aware bridgine
+set interfaces bridge br0 enable-vlan
+# Настраиваем интерфейсы
+# eth0: сюда подключается клиент, поэтому с помощью native-vlan назначаем vlan 10
+set interfaces bridge br0 member interface eth0 native-vlan 10
+# eth1: тут мы стыкуемся с vyos4, поэтому разрешаем все релевантные vlan-ы, но зарезаем приоритет (в итоге этот интерфейс блокируется STP)
+set interfaces bridge br0 member interface eth1 allowed-vlan 1-25
+set interfaces bridge br0 member interface eth1 priority 1
+# eth2: тут мы стыкуемся с vyos2, поэтому не только разрешаем вланы, но и повышаем приоритет
+set interfaces bridge br0 member interface eth2 allowed-vlan 1-25
+set interfaces bridge br0 member interface eth2 priority 10
+# Снова включаем STP
+set interfaces bridge br0 stp
+
+vyos 4 (свитч для второй подсети)
+# Тут все как с cyos 3
+set interfaces bridge br0 enable-vlan
+set interfaces bridge br0 member interface eth0 native-vlan '20'
+set interfaces bridge br0 member interface eth1 allowed-vlan 1-25
+set interfaces bridge br0 member interface eth1 priority 1
+set interfaces bridge br0 member interface eth2 allowed-vlan 1-25
+set interfaces bridge br0 member interface eth2 priority 10
+set interfaces bridge br0 stp
+
+vpcs5
+# Настраиваем себе сеть как в условии: берем адрес из подсети 10.0.10/24, ожидаем роутер по адресу 10.0.10.1
+ip 10.0.10.100 255.255.255.0 10.0.10.1
+
+vpcs6
+
+ip 10.0.20.100 255.255.255.0 10.0.20.1
