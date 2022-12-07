@@ -1,0 +1,29 @@
+# На vyos3: видим, что заблокировался нужный интерфейс
+vyos@vyos:~$ show bridge br0 
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 master br0 state forwarding priority 32 cost 100 
+3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 master br0 state blocking priority 1 cost 100 
+4: eth2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 master br0 state forwarding priority 10 cost 100 
+
+# на клиенте 5: видим, что можем допинговаться как до роутера, так и до клиента 6
+VPCS> ping 10.0.20.100
+
+84 bytes from 10.0.20.100 icmp_seq=1 ttl=63 time=4.638 ms
+84 bytes from 10.0.20.100 icmp_seq=2 ttl=63 time=2.887 ms
+84 bytes from 10.0.20.100 icmp_seq=3 ttl=63 time=3.369 ms
+84 bytes from 10.0.20.100 icmp_seq=4 ttl=63 time=3.105 ms
+84 bytes from 10.0.20.100 icmp_seq=5 ttl=63 time=9.830 ms
+
+VPCS> ping 10.0.10.100
+
+10.0.10.100 icmp_seq=1 ttl=64 time=0.001 ms
+10.0.10.100 icmp_seq=2 ttl=64 time=0.001 ms
+10.0.10.100 icmp_seq=3 ttl=64 time=0.001 ms
+10.0.10.100 icmp_seq=4 ttl=64 time=0.001 ms
+10.0.10.100 icmp_seq=5 ttl=64 time=0.001 ms
+
+VPCS> ping 10.0.10.1  
+
+84 bytes from 10.0.10.1 icmp_seq=1 ttl=64 time=4.912 ms
+84 bytes from 10.0.10.1 icmp_seq=2 ttl=64 time=1.866 ms
+84 bytes from 10.0.10.1 icmp_seq=3 ttl=64 time=3.610 ms
+# Тут обрезал таймауты, но они явно вызваны не конфигурацией с сети а с какими-то проблемами производительности у меня локально
