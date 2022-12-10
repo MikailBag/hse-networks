@@ -1,0 +1,56 @@
+DHCP в действии
+
+$ telnet 192.168.184.128 32775
+Trying 192.168.184.128...
+Connected to 192.168.184.128.
+Escape character is '^]'.
+
+VPCS> dhcp
+DDORA IP 10.0.10.13/24 GW 10.0.10.1
+
+VPCS> 
+telnet> quit
+Connection closed.
+
+
+$ telnet 192.168.184.128 32776
+Trying 192.168.184.128...
+Connected to 192.168.184.128.
+Escape character is '^]'.
+
+VPCS> dhcp
+DDORA IP 10.0.20.11/24 GW 10.0.20.1
+
+Связность клиентов между собой
+
+VPCS> ping 10.0.10.13
+
+84 bytes from 10.0.10.13 icmp_seq=1 ttl=63 time=12.049 ms
+84 bytes from 10.0.10.13 icmp_seq=2 ttl=63 time=4.125 ms
+84 bytes from 10.0.10.13 icmp_seq=3 ttl=63 time=2.935 ms
+84 bytes from 10.0.10.13 icmp_seq=4 ttl=63 time=8.995 ms
+84 bytes from 10.0.10.13 icmp_seq=5 ttl=63 time=6.830 ms
+
+Возможность пинговать внешний маршрутизатор
+
+VPCS> ping 10.1.0.1
+
+84 bytes from 10.1.0.1 icmp_seq=1 ttl=63 time=11.985 ms
+84 bytes from 10.1.0.1 icmp_seq=2 ttl=63 time=7.266 ms
+84 bytes from 10.1.0.1 icmp_seq=3 ttl=63 time=6.374 ms
+84 bytes from 10.1.0.1 icmp_seq=4 ttl=63 time=5.098 ms
+84 bytes from 10.1.0.1 icmp_seq=5 ttl=63 time=5.667 ms
+
+Маршрутизатор не смог бы отвечать без NAT-а - он не знает нужного маршруат
+
+$ telnet 192.168.184.128 32774
+
+> show ip route 
+Codes: K - kernel route, C - connected, S - static, R - RIP,
+       O - OSPF, I - IS-IS, B - BGP, E - EIGRP, N - NHRP,
+       T - Table, v - VNC, V - VNC-Direct, A - Babel, F - PBR,
+       f - OpenFabric,
+       > - selected route, * - FIB route, q - queued, r - rejected, b - backup
+       t - trapped, o - offload failure
+
+C>* 10.1.0.0/16 is directly connected, eth0, 00:02:45
