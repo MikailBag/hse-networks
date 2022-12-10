@@ -1,0 +1,168 @@
+--- Router ---
+
+set interfaces ethernet eth0 hw-id '50:00:00:02:00:00'
+set interfaces ethernet eth0 vif 10 address '10.0.10.1/24'
+set interfaces ethernet eth0 vif 20 address '10.0.20.1/24'
+set interfaces ethernet eth1 address '10.1.0.100/16'
+set interfaces ethernet eth1 hw-id '50:00:00:02:00:01'
+set interfaces ethernet eth2 hw-id '50:00:00:02:00:02'
+set interfaces ethernet eth3 hw-id '50:00:00:02:00:03'
+set interfaces loopback lo
+set nat source rule 50 outbound-interface 'eth1'
+set nat source rule 50 translation address 'masquerade'
+set service dhcp-server shared-network-name LAN10 authoritative
+set service dhcp-server shared-network-name LAN10 subnet 10.0.10.0/24 default-router '10.0.10.1'
+set service dhcp-server shared-network-name LAN10 subnet 10.0.10.0/24 name-server '1.1.1.1'
+set service dhcp-server shared-network-name LAN10 subnet 10.0.10.0/24 range 0 start '10.0.10.11'
+set service dhcp-server shared-network-name LAN10 subnet 10.0.10.0/24 range 0 stop '10.0.10.254'
+set service dhcp-server shared-network-name LAN20 authoritative
+set service dhcp-server shared-network-name LAN20 subnet 10.0.20.0/24 default-router '10.0.20.1'
+set service dhcp-server shared-network-name LAN20 subnet 10.0.20.0/24 name-server '1.1.1.1'
+set service dhcp-server shared-network-name LAN20 subnet 10.0.20.0/24 range 0 start '10.0.20.11'
+set service dhcp-server shared-network-name LAN20 subnet 10.0.20.0/24 range 0 stop '10.0.20.254'
+set system config-management commit-revisions '100'
+set system conntrack modules ftp
+set system conntrack modules h323
+set system conntrack modules nfs
+set system conntrack modules pptp
+set system conntrack modules sip
+set system conntrack modules sqlnet
+set system conntrack modules tftp
+set system console device ttyS0 speed '115200'
+set system host-name 'vyos'
+set system login user vyos authentication encrypted-password '$6$kZ2aS8kxoPyyuwcx$FdA.fx4VI3KmKVd60uFAO0Zymbwc2fx10L293dpLi9NYrewseEy0nXg0Ek28K5dMpZLp7fR0cy35YWGFWhVPJ1'
+set system login user vyos authentication plaintext-password ''
+set system ntp server time1.vyos.net
+set system ntp server time2.vyos.net
+set system ntp server time3.vyos.net
+set system syslog global facility all level 'info'
+set system syslog global facility protocols level 'debug'
+vyos@vyos
+
+--- Upstream ---
+
+set interfaces ethernet eth0 address '10.1.0.100/16'
+set interfaces ethernet eth0 hw-id '50:00:00:06:00:00'
+set interfaces ethernet eth1 hw-id '50:00:00:06:00:01'
+set interfaces ethernet eth2 hw-id '50:00:00:06:00:02'
+set interfaces ethernet eth3 hw-id '50:00:00:06:00:03'
+set interfaces loopback lo
+set system config-management commit-revisions '100'
+set system conntrack modules ftp
+set system conntrack modules h323
+set system conntrack modules nfs
+set system conntrack modules pptp
+set system conntrack modules sip
+set system conntrack modules sqlnet
+set system conntrack modules tftp
+set system console device ttyS0 speed '115200'
+set system host-name 'vyos'
+set system login user vyos authentication encrypted-password '$6$kZ2aS8kxoPyyuwcx$FdA.fx4VI3KmKVd60uFAO0Zymbwc2fx10L293dpLi9NYrewseEy0nXg0Ek28K5dMpZLp7fR0cy35YWGFWhVPJ1'
+set system login user vyos authentication plaintext-password ''
+set system ntp server time1.vyos.net
+set system ntp server time2.vyos.net
+set system ntp server time3.vyos.net
+set system syslog global facility all level 'info'
+set system syslog global facility protocols level 'debug'
+vyos@vyos
+
+--- Aggregation switch ---
+
+
+set interfaces bridge br0 member interface eth0
+set interfaces bridge br0 member interface eth1 priority '10'
+set interfaces bridge br0 member interface eth2 priority '10'
+set interfaces bridge br0 stp
+set interfaces ethernet eth0 hw-id '50:00:00:03:00:00'
+set interfaces ethernet eth1 hw-id '50:00:00:03:00:01'
+set interfaces ethernet eth2 hw-id '50:00:00:03:00:02'
+set interfaces ethernet eth3 hw-id '50:00:00:03:00:03'
+set interfaces loopback lo
+set system config-management commit-revisions '100'
+set system conntrack modules ftp
+set system conntrack modules h323
+set system conntrack modules nfs
+set system conntrack modules pptp
+set system conntrack modules sip
+set system conntrack modules sqlnet
+set system conntrack modules tftp
+set system console device ttyS0 speed '115200'
+set system host-name 'vyos'
+set system login user vyos authentication encrypted-password '$6$kZ2aS8kxoPyyuwcx$FdA.fx4VI3KmKVd60uFAO0Zymbwc2fx10L293dpLi9NYrewseEy0nXg0Ek28K5dMpZLp7fR0cy35YWGFWhVPJ1'
+set system login user vyos authentication plaintext-password ''
+set system ntp server time1.vyos.net
+set system ntp server time2.vyos.net
+set system ntp server time3.vyos.net
+set system syslog global facility all level 'info'
+set system syslog global facility protocols level 'debug'
+vyos@vyos
+
+
+--- Access switch 1 ---
+
+set interfaces bridge br0 enable-vlan
+set interfaces bridge br0 member interface eth0 native-vlan '10'
+set interfaces bridge br0 member interface eth1 allowed-vlan '1-25'
+set interfaces bridge br0 member interface eth1 priority '1'
+set interfaces bridge br0 member interface eth2 allowed-vlan '1-25'
+set interfaces bridge br0 member interface eth2 priority '10'
+set interfaces bridge br0 stp
+set interfaces ethernet eth0 hw-id '50:00:00:04:00:00'
+set interfaces ethernet eth1 hw-id '50:00:00:04:00:01'
+set interfaces ethernet eth2 hw-id '50:00:00:04:00:02'
+set interfaces ethernet eth3 hw-id '50:00:00:04:00:03'
+set interfaces loopback lo
+set system config-management commit-revisions '100'
+set system conntrack modules ftp
+set system conntrack modules h323
+set system conntrack modules nfs
+set system conntrack modules pptp
+set system conntrack modules sip
+set system conntrack modules sqlnet
+set system conntrack modules tftp
+set system console device ttyS0 speed '115200'
+set system host-name 'vyos'
+set system login user vyos authentication encrypted-password '$6$kZ2aS8kxoPyyuwcx$FdA.fx4VI3KmKVd60uFAO0Zymbwc2fx10L293dpLi9NYrewseEy0nXg0Ek28K5dMpZLp7fR0cy35YWGFWhVPJ1'
+set system login user vyos authentication plaintext-password ''
+set system ntp server time1.vyos.net
+set system ntp server time2.vyos.net
+set system ntp server time3.vyos.net
+set system syslog global facility all level 'info'
+set system syslog global facility protocols level 'debug'
+vyos@vyos
+
+
+--- Access switch 2 ---
+
+set interfaces bridge br0 enable-vlan
+set interfaces bridge br0 member interface eth0 native-vlan '20'
+set interfaces bridge br0 member interface eth1 allowed-vlan '1-25'
+set interfaces bridge br0 member interface eth1 priority '1'
+set interfaces bridge br0 member interface eth2 allowed-vlan '1-25'
+set interfaces bridge br0 member interface eth2 priority '10'
+set interfaces bridge br0 stp
+set interfaces ethernet eth0 hw-id '50:00:00:05:00:00'
+set interfaces ethernet eth1 hw-id '50:00:00:05:00:01'
+set interfaces ethernet eth2 hw-id '50:00:00:05:00:02'
+set interfaces ethernet eth3 hw-id '50:00:00:05:00:03'
+set interfaces loopback lo
+set system config-management commit-revisions '100'
+set system conntrack modules ftp
+set system conntrack modules h323
+set system conntrack modules nfs
+set system conntrack modules pptp
+set system conntrack modules sip
+set system conntrack modules sqlnet
+set system conntrack modules tftp
+set system console device ttyS0 speed '115200'
+set system host-name 'vyos'
+set system login user vyos authentication encrypted-password '$6$kZ2aS8kxoPyyuwcx$FdA.fx4VI3KmKVd60uFAO0Zymbwc2fx10L293dpLi9NYrewseEy0nXg0Ek28K5dMpZLp7fR0cy35YWGFWhVPJ1'
+set system login user vyos authentication plaintext-password ''
+set system ntp server time1.vyos.net
+set system ntp server time2.vyos.net
+set system ntp server time3.vyos.net
+set system syslog global facility all level 'info'
+set system syslog global facility protocols level 'debug'
+vyos@vyos
+
+
