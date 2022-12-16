@@ -1,0 +1,51 @@
+Данная последовательность команд позволяет настроить PKI в предположении прослушиваемого, но не искажающего данные канала связи (то есть никаких
+секретных данных по сети не передается, и каждый приватный ключ используется только создавшим его узлом и другим узлам не разглашается).
+Например, если глазами сверять хэши файлов, то такая процедура позволит безопасно настроить взаимное доверие между роутерами.
+
+В данном случае настраиваются роутеры 1 и 3, причем роутер 1 также выступает в качестве удостоверяющего центра.
+
+
+На роутере 1 генерируем ключ CA и ключ для VPN
+mkdir public
+openssl genrsa -out ca.pem
+openssl rsa -in ca.pem -pubout -out public/ca.pem
+openssl genrsa -out vpn.pem
+openssl rsa -in vpn.pem -pubout -out public/vpn.pem
+
+
+На роутере 3 генерируем ключ для VPN
+mkdir public
+openssl genrsa -out vpn.pem
+openssl rsa -in vpn.pem -pubout -out public/vpn.pem
+
+На роутере 1 создаем самоподписанное CA, и выписываем сертификат для VPN
+openssl req -x509 -new -key ca.pem -days 365 -out public/ca-crt.pem
+openssl req -new -key vpn.pem -subj "/CN=100.1.0.2" -out public/vpn-csr.pem
+openssl x509 -req -in public/vpn-csr.pem -CA public/ca-crt.pem -CAkey ca.pem -CAcreateserial -out public/vpn-crt.pem
+
+На роутере 3 создаем запрос на сертификат
+openssl req -new -key vpn.pem -subj "/CN=100.3.0.2" -out public/vpn-csr.pem
+
+Далее на обоих роутерах настраиваем TFTP-серверы, с помощью которых роутеры обменяются данными
+set service tftp-server directory '/home/vyos/public'
+set service tftp-server listen-address 100.X.0.2 (где X=1 для роутера 1 и X=3 для роутера 3)
+
+На роутере 1 скачиваем запрос на сертификат для роутера 3, выписываем сертификат
+tftp -g -l r3-csr.pem -r vpn-csr.pem 100.3.0.2
+openssl x509 -req -in r3-csr.pem -CA public/ca-crt.pem -CAkey ca.pem -CAcreateserial -out r3-vpn-crt.pem
+sudo cp r2-vpn-crt.pem public
+
+На роутере 3 скачиваем выписыванный сертификат, а также сертификат удостоверяющего центра
+tftp -g -l vpn-crt.pem -r r3-vpn-crt.pem 100.1.0.2
+tftp -g -l ca-crt.pem -r ca-crt.pem 100.1.0.2
+
+На этом обмен данными завершен, осталось лишь импортировать данные в хранилище vyos
+run import pki certificate vpn file public/vpn-crt.pem
+run import pki certificate vpn key-file vpn.pem
+run import pki ca ca file public/ca-crt.pem
+run import pki certificate vpn file vpn-crt.pem
+run import pki certificate vpn key-file vpn.pem
+run import pki ca ca file ca-crt.pem
+
+Отмечу, что для роутера 1 мы не импортируем приватный ключ удостоверяющего центра, потому что в этом нет необходимости
+(все нужные сертификаты уже выполнены, приватный ключ CA можно даже удалить)
