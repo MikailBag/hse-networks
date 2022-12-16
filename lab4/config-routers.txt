@@ -1,0 +1,127 @@
+# Я приведу с комментариями и без дефолтных значений только конфигурацию роутера 1, потому что конфигурации роутеров 2 и 3 по сути повторяют ее фрагменты
+# Настройка PKI описана отдельно
+
+# Интерфейс в сторону клиента
+set interfaces ethernet eth1 address '179.0.1.1/24'
+# Интерфейс в сторону интернета
+set interfaces ethernet eth2 address '100.1.0.2/16'
+# По дефолту отправляем трафик в интернет
+set protocols static route 0.0.0.0/0 next-hop 100.1.0.1
+# Настраиваем GRE-туннели к пограничным роутерам офисов 2 и 3
+set interfaces tunnel tun2 address '179.57.2.1/24'
+set interfaces tunnel tun2 encapsulation 'gre'
+set interfaces tunnel tun2 remote '100.2.0.2'
+set interfaces tunnel tun2 source-address '100.1.0.2'
+set interfaces tunnel tun3 address '179.57.3.1/24'
+set interfaces tunnel tun3 encapsulation 'gre'
+set interfaces tunnel tun3 remote '100.3.0.2'
+set interfaces tunnel tun3 source-address '100.1.0.2'
+# Трафик в сети офисов 2 и 3 направляем в построенные туннели
+set protocols static route 179.0.2.0/24 next-hop 179.57.2.2
+set protocols static route 179.0.3.0/24 next-hop 179.57.3.2
+# Настраиваем IPSec
+# Тут все примерно как на семинаре (хотел настроить transport mode но как-то сходу не получилось)
+set vpn ipsec esp-group main mode 'tunnel'
+set vpn ipsec esp-group main proposal 1 encryption 'aes256'
+set vpn ipsec esp-group main proposal 1 hash 'sha256'
+set vpn ipsec ike-group main key-exchange 'ikev1'
+set vpn ipsec ike-group main proposal 1 encryption 'aes256'
+set vpn ipsec ike-group main proposal 1 hash 'sha256'
+# Настраиваем соседа (роутер 3), аутентифицируем его и себя по сертификатам
+set vpn ipsec site-to-site peer r3 authentication mode 'x509'
+set vpn ipsec site-to-site peer r3 authentication remote-id 'CN=100.3.0.2'
+set vpn ipsec site-to-site peer r3 authentication x509 ca-certificate 'ca'
+set vpn ipsec site-to-site peer r3 authentication x509 certificate 'vpn'
+set vpn ipsec site-to-site peer r3 ike-group 'main'
+# Как обычно прокладываем туннель между публичными интерфейсами
+set vpn ipsec site-to-site peer r3 local-address '100.1.0.2'
+set vpn ipsec site-to-site peer r3 remote-address '100.3.0.2'
+set vpn ipsec site-to-site peer r3 tunnel 0 esp-group 'main'
+set vpn ipsec site-to-site peer r3 tunnel 0 local
+# Шифруем весь GRE адрес (кажется это не сработает если туннелей больше одного, хотел матчиться по исходящему интерфейсу но сходу не получилось)
+set vpn ipsec site-to-site peer r3 tunnel 0 protocol 'gre'
+
+
+
+# конфиг роутера 2 в виде полотна
+
+set interfaces ethernet eth0 hw-id '50:00:00:03:00:00'
+set interfaces ethernet eth1 address '179.0.3.1/24'
+set interfaces ethernet eth1 hw-id '50:00:00:03:00:01'
+set interfaces ethernet eth2 address '100.3.0.2/16'
+set interfaces ethernet eth2 hw-id '50:00:00:03:00:02'
+set interfaces ethernet eth3 hw-id '50:00:00:03:00:03'
+set interfaces loopback lo
+set interfaces tunnel tun0 address '179.57.3.2/24'
+set interfaces tunnel tun0 encapsulation 'gre'
+set interfaces tunnel tun0 remote '100.1.0.2'
+set interfaces tunnel tun0 source-address '100.3.0.2'
+set protocols static route 0.0.0.0/0 next-hop 10.0.3.1
+set protocols static route 0.0.0.0/0 next-hop 100.3.0.1
+set protocols static route 179.0.1.0/24 next-hop 179.57.3.1
+set service tftp-server directory '/home/vyos/public'
+set service tftp-server listen-address 100.3.0.2
+set system config-management commit-revisions '100'
+set system conntrack modules ftp
+set system conntrack modules h323
+set system conntrack modules nfs
+set system conntrack modules pptp
+set system conntrack modules sip
+set system conntrack modules sqlnet
+set system conntrack modules tftp
+set system console device ttyS0 speed '115200'
+set system host-name 'vyos'
+set system login user vyos authentication plaintext-password ''
+set system ntp server time1.vyos.net
+set system ntp server time2.vyos.net
+set system ntp server time3.vyos.net
+set system syslog global facility all level 'info'
+set system syslog global facility protocols level 'debug'
+set vpn ipsec esp-group main mode 'tunnel'
+set vpn ipsec esp-group main proposal 1 encryption 'aes256'
+set vpn ipsec esp-group main proposal 1 hash 'sha256'
+set vpn ipsec ike-group main key-exchange 'ikev1'
+set vpn ipsec ike-group main proposal 1 encryption 'aes256'
+set vpn ipsec ike-group main proposal 1 hash 'sha256'
+set vpn ipsec site-to-site peer r1 authentication mode 'x509'
+set vpn ipsec site-to-site peer r1 authentication remote-id 'CN=100.1.0.2'
+set vpn ipsec site-to-site peer r1 authentication x509 ca-certificate 'ca'
+set vpn ipsec site-to-site peer r1 authentication x509 certificate 'vpn'
+set vpn ipsec site-to-site peer r1 ike-group 'main'
+set vpn ipsec site-to-site peer r1 local-address '100.3.0.2'
+set vpn ipsec site-to-site peer r1 remote-address '100.1.0.2'
+set vpn ipsec site-to-site peer r1 tunnel 0 esp-group 'main'
+set vpn ipsec site-to-site peer r1 tunnel 0 local
+set vpn ipsec site-to-site peer r1 tunnel 0 protocol 'gre'
+
+# конфиг роутера 3 в виде полотна
+set interfaces ethernet eth0 hw-id '50:00:00:02:00:00'
+set interfaces ethernet eth1 address '179.0.2.1/24'
+set interfaces ethernet eth1 hw-id '50:00:00:02:00:01'
+set interfaces ethernet eth2 address '100.2.0.2/16'
+set interfaces ethernet eth2 hw-id '50:00:00:02:00:02'
+set interfaces ethernet eth3 hw-id '50:00:00:02:00:03'
+set interfaces loopback lo
+set interfaces tunnel tun0 address '179.57.2.2/24'
+set interfaces tunnel tun0 encapsulation 'gre'
+set interfaces tunnel tun0 remote '100.1.0.2'
+set interfaces tunnel tun0 source-address '100.2.0.2'
+set protocols static route 0.0.0.0/0 next-hop 100.2.0.1
+set protocols static route 179.0.1.0/24 next-hop 179.57.2.1
+set system config-management commit-revisions '100'
+set system conntrack modules ftp
+set system conntrack modules h323
+set system conntrack modules nfs
+set system conntrack modules pptp
+set system conntrack modules sip
+set system conntrack modules sqlnet
+set system conntrack modules tftp
+set system console device ttyS0 speed '115200'
+set system host-name 'vyos'
+GFWhVPJ1'
+set system login user vyos authentication plaintext-password ''
+set system ntp server time1.vyos.net
+set system ntp server time2.vyos.net
+set system ntp server time3.vyos.net
+set system syslog global facility all level 'info'
+set system syslog global facility protocols level 'debug'
