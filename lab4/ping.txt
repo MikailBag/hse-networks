@@ -1,0 +1,18 @@
+Клиент 1 имеет двустороннюю связность с клиентами 2 и 3 (к сожалению пруфов того что обмен данными между 1 и 3 идет
+инкапсулированный в GRE у меня нет, но я это в wireshark проверил)
+
+VPCS> ping 179.0.3.2
+
+84 bytes from 179.0.3.2 icmp_seq=1 ttl=62 time=9.065 ms
+84 bytes from 179.0.3.2 icmp_seq=2 ttl=62 time=5.682 ms
+84 bytes from 179.0.3.2 icmp_seq=3 ttl=62 time=2.114 ms
+84 bytes from 179.0.3.2 icmp_seq=4 ttl=62 time=2.056 ms
+84 bytes from 179.0.3.2 icmp_seq=5 ttl=62 time=2.325 ms
+
+VPCS> ping 179.0.2.2
+
+84 bytes from 179.0.2.2 icmp_seq=1 ttl=62 time=10.507 ms
+84 bytes from 179.0.2.2 icmp_seq=2 ttl=62 time=1.658 ms
+84 bytes from 179.0.2.2 icmp_seq=3 ttl=62 time=5.454 ms
+84 bytes from 179.0.2.2 icmp_seq=4 ttl=62 time=2.245 ms
+84 bytes from 179.0.2.2 icmp_seq=5 ttl=62 time=1.860 ms
