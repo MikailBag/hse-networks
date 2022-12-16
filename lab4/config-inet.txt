@@ -1,0 +1,4 @@
+# Просто настраиваем интерфейсы, больше ничего этот роутер не знает
+set interfaces ethernet eth1 address '100.1.0.1/16'
+set interfaces ethernet eth2 address '100.2.0.1/16'
+set interfaces ethernet eth3 address '100.3.0.1/16'
